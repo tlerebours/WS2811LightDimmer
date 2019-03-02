@@ -16,12 +16,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __LIGHT_DIMMER__
-#define __LIGHT_DIMMER__
+#ifndef __WS2811_LIGHT_DIMMER__
+#define __WS2811_LIGHT_DIMMER__
 
 #include "Arduino.h"
 
-class LightDimmer
+class _LightDimmer
 {
   private:
     enum { LD_OFF, LD_ON, LD_RISING, LD_FALLING };
@@ -33,29 +33,16 @@ class LightDimmer
     uint16_t mOnTime;
     uint16_t mPeriod;
     uint32_t mNextEventDate;
-
-    LightDimmer *mNext;
-    static LightDimmer *sLightList;
-    static LightDimmer *sCurrent;
-
-    void updateState();
-    virtual void updateOutput();
-
-  protected:
-    uint8_t  mValue;
-    uint8_t  mPin:6;
-    bool     mBlink:1;
-    uint8_t  mOff:1;
-
+    bool     mBlink;
+    
   public:
-    LightDimmer();
-    void begin(const uint8_t inPin, const uint8_t inOn);
+    _LightDimmer();
     void setMax(const uint8_t inMax) { mMax = inMax; };
     void setFadingTime(const uint16_t inFallTime) { mFallTime = inFallTime > 0 ? inFallTime : 1; };
     void setBrighteningTime(const uint16_t inRiseTime) { mRiseTime = inRiseTime > 0 ? inRiseTime : 1; };
     void setOnTime(const uint16_t inOnTime) { mOnTime = inOnTime; };
     void setPeriod(const uint16_t inPeriod) { mPeriod = inPeriod; };
-    void setupMax(const uint8_t inMax);
+    void setupMax(const uint8_t inMax);    
     void on();
     void off();
     void startBlink();
@@ -71,23 +58,28 @@ class LightDimmer
     uint16_t brighteningTime() { return mRiseTime; }
     uint16_t onTime()          { return mOnTime; }
     uint16_t period()          { return mPeriod; }
-    uint8_t pin()              { return mPin; }
-    uint8_t value()            { return mValue; }
 
-    static void update();
-    static void update(const uint8_t inHowMany);
+    void updateState(const uint32_t inCurrentDate, uint8_t& value);
 };
 
-class LightDimmerSoft : public LightDimmer
+class WS2811LightDimmer
 {
   private:
-    uint8_t mDuty;
+    uint8_t mPin;
+    uint8_t mNbLight;
+    uint8_t *mLightValue;
 
-    virtual void updateOutput();
+    void ws2811_sendarray_mask(uint8_t *array,uint16_t length, uint8_t pinmask,uint8_t *port, uint8_t *portreg);
+    const volatile uint8_t *ws2811_port;
+    volatile uint8_t *ws2811_port_reg;
+    uint8_t pinMask;     
 
   public:
-    LightDimmerSoft() : LightDimmer() {}
-
+    WS2811LightDimmer(const uint8_t inNbLight);
+    void begin(const uint8_t inPin);
+    void update();
+    
+    _LightDimmer *light;
 };
 
 #endif
