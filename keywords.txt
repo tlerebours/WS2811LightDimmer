@@ -6,8 +6,7 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-LightDimmer	KEYWORD1
-LightDimmerSoft	KEYWORD1
+WS2811LightDimmer	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -33,3 +32,4 @@ isBrightening	KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+light

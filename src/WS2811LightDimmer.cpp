@@ -129,9 +129,11 @@ void _LightDimmer::updateState(const uint32_t inCurrentDate, uint8_t& value)
 }
 
 WS2811LightDimmer::WS2811LightDimmer(const uint8_t inNbLight)
+  : mPin(63),
+    mNextRefreshDate(0u)
 {
   mNbLight = ((inNbLight + 2) / 3) * 3; //3 Led on each WS2811
-  light = new _LightDimmer[mNbLight];
+  mLight = new _LightDimmer[mNbLight];
   mLightValue = new uint8_t[mNbLight];
   for (uint8_t i = 0; i < mNbLight; i++) { 
     mLightValue[i] = 0;
@@ -151,8 +153,21 @@ void WS2811LightDimmer::update()
 {
   uint32_t currentDate = millis();
   for (uint8_t i = 0; i < mNbLight; i++) { 
-    light[i].updateState(currentDate, mLightValue[i]);
+    mLight[i].updateState(currentDate, mLightValue[i]);
   }
   *ws2811_port_reg |= pinMask; // Enable DDR
   ws2811_sendarray_mask(mLightValue, mNbLight, pinMask, (uint8_t*) ws2811_port,(uint8_t*) ws2811_port_reg);  
+}
+
+void WS2811LightDimmer::update(const uint8_t inRefreshPeriod)
+{
+  uint32_t currentDate = millis();  
+  if (millis() >= mNextRefreshDate) {
+    mNextRefreshDate = currentDate + inRefreshPeriod;
+    for (uint8_t i = 0; i < mNbLight; i++) { 
+      mLight[i].updateState(currentDate, mLightValue[i]);
+    }
+    *ws2811_port_reg |= pinMask; // Enable DDR
+    ws2811_sendarray_mask(mLightValue, mNbLight, pinMask, (uint8_t*) ws2811_port,(uint8_t*) ws2811_port_reg);  
+  }  
 }
